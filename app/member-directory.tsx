@@ -1,7 +1,9 @@
 "use client";
 
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { filterTags, members, type Member } from "./members";
+
+const currentCityCount = new Set(members.map((member) => member.cities[0]).filter(Boolean)).size;
 
 function searchableText(member: Member) {
   return [
@@ -18,64 +20,138 @@ function searchableText(member: Member) {
     .toLocaleLowerCase("zh-CN");
 }
 
-function Section({ number, title, items }: { number: string; title: string; items: string[] }) {
-  if (!items.length) return null;
-
-  return (
-    <section className="card-section">
-      <div className="section-title">
-        <span>{number}</span>
-        <h2>{title}</h2>
-      </div>
-      <ul>
-        {items.map((item) => (
-          <li key={item}>{item}</li>
-        ))}
-      </ul>
-    </section>
-  );
+function shorten(text: string, limit: number) {
+  return text.length > limit ? `${text.slice(0, limit - 1)}…` : text;
 }
 
-function MemberCard({ member, index, total }: { member: Member; index: number; total: number }) {
+function mobileItems(items: string[], limit = 2, characterLimit = 40) {
+  return items.slice(0, limit).map((item) => shorten(item, characterLimit));
+}
+
+function mobileSentence(items: string[], limit = 2, characterLimit = 58) {
+  return shorten(items.slice(0, limit).join("；"), characterLimit);
+}
+
+function MemberCard({
+  member,
+  index,
+  total,
+  onOpen,
+}: {
+  member: Member;
+  index: number;
+  total: number;
+  onOpen: (member: Member) => void;
+}) {
+  const sectionNumber = (position: number) => String(position).padStart(2, "0");
+  const currentCity = member.cities[0];
+  const railLocation = currentCity || "SEED COMMUNITY";
+  let position = 1;
+
   return (
-    <article className={`member-card accent-${member.accent}`} aria-labelledby={`member-${member.id}`}>
-      <div className="card-topline">
-        <span className="card-index">NO. {String(index + 1).padStart(2, "0")}</span>
-        <span className="card-count">{index + 1} / {total}</span>
+    <article className="member-card feature-card" aria-labelledby={`member-${member.id}`}>
+      <div className="feature-issue">
+        <span>yaya种子用户社群 · 人物特刊</span>
+        <span>ISSUE {String(index + 1).padStart(3, "0")}</span>
       </div>
 
-      <header className="member-head">
-        <div>
-          <p className="eyebrow">HELLO, I AM</p>
-          <h1 id={`member-${member.id}`}>{member.name}</h1>
-        </div>
-        <div className="city-list" aria-label="所在城市">
-          {member.cities.map((city) => <span key={city}>⌖ {city}</span>)}
+      <aside className="feature-rail" aria-hidden="true">
+        <strong>PERSON / {railLocation}</strong>
+        <em>一路在做</em>
+      </aside>
+
+      <header className="feature-cover">
+        {currentCity && <div className="feature-place">{currentCity}</div>}
+        <h1 id={`member-${member.id}`}>{member.name}</h1>
+        <p className="feature-full">{member.identity}</p>
+        <p className="feature-mobile">{shorten(member.identity, 50)}</p>
+        <div className="feature-seal">
+          <b>NO.</b>
+          {String(index + 1).padStart(2, "0")}
         </div>
       </header>
 
-      <p className="identity">{member.identity}</p>
+      {member.story.length > 0 && (
+        <section className="feature-section feature-story">
+          <div className="feature-label"><span>{sectionNumber(position++)}</span> 我走过的路</div>
+          <ul className="feature-full">{member.story.map((item) => <li key={item}>{item}</li>)}</ul>
+          <ul className="feature-mobile">{mobileItems(member.story).map((item) => <li key={item}>{item}</li>)}</ul>
+        </section>
+      )}
 
-      <div className="member-content">
-        <Section number="01" title="我走过的路" items={member.story} />
-        <Section number={member.story.length ? "02" : "01"} title="我正在搞的事" items={member.doing} />
-        <Section number={member.story.length ? "03" : "02"} title="我能给你的" items={member.offers} />
-        <Section number={member.story.length ? "04" : "03"} title="我想链接的" items={member.seeks} />
-      </div>
+      <section className="feature-section feature-doing">
+        <div className="feature-label"><span>{sectionNumber(position++)}</span> 我正在搞的事</div>
+        <p className="feature-full">{member.doing.join("；")}</p>
+        <p className="feature-mobile">{mobileSentence(member.doing)}</p>
+      </section>
 
-      <footer className="card-footer">
-        <div className="member-tags">
-          {member.tags.map((tag) => <span key={tag}>#{tag}</span>)}
+      {member.offers.length > 0 && (
+        <section className="feature-section feature-offers">
+          <div className="feature-label"><span>{sectionNumber(position++)}</span> 我能给你的</div>
+          <ul className="feature-full">{member.offers.map((item) => <li key={item}>{item}</li>)}</ul>
+          <ul className="feature-mobile">{mobileItems(member.offers).map((item) => <li key={item}>{item}</li>)}</ul>
+        </section>
+      )}
+
+      <section className="feature-section feature-seeks">
+        <div className="feature-label"><span>{sectionNumber(position++)}</span> 我想链接的</div>
+        <p className="feature-full">{member.seeks.join("；")}</p>
+        <p className="feature-mobile">{mobileSentence(member.seeks, 2, 50)}</p>
+        <div className="feature-tags feature-full">{member.tags.slice(0, 5).map((tag) => <span key={tag}>{tag}</span>)}</div>
+        <div className="feature-tags feature-mobile">
+          {member.tags.slice(0, 5).map((tag) => <span key={tag}>{tag}</span>)}
         </div>
-        <span className="card-mark" aria-hidden="true">同路人</span>
-      </footer>
+        <div className="feature-actions">
+          <div className="feature-contact">在群内搜索昵称「{member.name}」联系</div>
+          <button className="feature-more" type="button" onClick={() => onOpen(member)}>查看完整介绍</button>
+        </div>
+      </section>
+
+      <div className="feature-page-count">{index + 1} / {total}</div>
     </article>
+  );
+}
+
+function MemberDetail({ member, onClose }: { member: Member; onClose: () => void }) {
+  return (
+    <div className="member-detail" role="dialog" aria-modal="true" aria-labelledby={`detail-${member.id}`}>
+      <div className="member-detail-panel">
+        <header>
+          <div>
+            <span>yaya种子用户社群 · 完整介绍</span>
+            <h2 id={`detail-${member.id}`}>{member.name}</h2>
+            <p>{member.cities[0] || "社群成员"}</p>
+          </div>
+          <button type="button" onClick={onClose} autoFocus aria-label="关闭完整介绍">×</button>
+        </header>
+
+        <p className="member-detail-identity">{member.identity}</p>
+
+        {member.story.length > 0 && <section><h3>我走过的路</h3><ul>{member.story.map((item) => <li key={item}>{item}</li>)}</ul></section>}
+        <section><h3>我正在搞的事</h3><ul>{member.doing.map((item) => <li key={item}>{item}</li>)}</ul></section>
+        {member.offers.length > 0 && <section><h3>我能给你的</h3><ul>{member.offers.map((item) => <li key={item}>{item}</li>)}</ul></section>}
+        <section><h3>我想链接的</h3><ul>{member.seeks.map((item) => <li key={item}>{item}</li>)}</ul></section>
+
+        <div className="member-detail-tags">{member.tags.slice(0, 5).map((tag) => <span key={tag}>{tag}</span>)}</div>
+        <div className="member-detail-contact">在群内搜索昵称「{member.name}」联系</div>
+      </div>
+    </div>
   );
 }
 
 export function MemberDirectory() {
   const [query, setQuery] = useState("");
   const [activeTag, setActiveTag] = useState("全部");
+  const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+
+  useEffect(() => {
+    if (!selectedMember) return;
+    const closeOnEscape = (event: KeyboardEvent) => {
+      if (event.key === "Escape") setSelectedMember(null);
+    };
+    document.addEventListener("keydown", closeOnEscape);
+    return () => document.removeEventListener("keydown", closeOnEscape);
+  }, [selectedMember]);
 
   const visibleMembers = useMemo(() => {
     const keyword = query.trim().toLocaleLowerCase("zh-CN");
@@ -99,12 +175,17 @@ export function MemberDirectory() {
       <header className="site-header">
         <div className="brand-block">
           <div className="brand-kicker"><span /> SEED COMMUNITY · 2026</div>
-          <h1>同路人名牌</h1>
-          <p>在这里，找到值得认真聊聊的人。</p>
+          <h1>yaya种子社群同路人</h1>
+          <p className="brand-summary">
+            <span className="summary-full">
+              目前已有 <strong>{members.length}</strong> 位朋友参加「yaya 种子用户社群」自我介绍，来自 <strong>{currentCityCount}</strong> 个现居城市。这里聚集了正在探索 AI 工具、小红书、一人公司、副业、电商、个人 IP 与内容创作的人。你可以按城市、经历、技能或正在做的事，找到值得认真聊聊的同路人。
+            </span>
+            <span className="summary-mobile">{members.length} 人已介绍 · {currentCityCount} 座城市 · AI / 一人公司 / 内容与生意</span>
+          </p>
         </div>
         <div className="member-total">
           <strong>{members.length}</strong>
-          <span>位同行者</span>
+          <span>位同行者 · {currentCityCount} 座城市</span>
         </div>
       </header>
 
@@ -143,7 +224,7 @@ export function MemberDirectory() {
       {visibleMembers.length ? (
         <section className="card-deck" aria-label="成员名牌列表">
           {visibleMembers.map((member, index) => (
-            <MemberCard key={member.id} member={member} index={index} total={visibleMembers.length} />
+            <MemberCard key={member.id} member={member} index={index} total={visibleMembers.length} onOpen={setSelectedMember} />
           ))}
           <div className="deck-ending">
             <span>END</span>
@@ -162,6 +243,8 @@ export function MemberDirectory() {
         <span>↑</span>
         上滑看下一位
       </div>
+
+      {selectedMember && <MemberDetail member={selectedMember} onClose={() => setSelectedMember(null)} />}
     </main>
   );
 }

@@ -254,16 +254,6 @@ button { color: inherit; }
   writing-mode: vertical-rl;
 }
 
-.feature-rail em {
-  position: absolute;
-  bottom: 20px;
-  left: 8px;
-  color: var(--tomato);
-  font: 700 21px/1 var(--serif);
-  letter-spacing: .14em;
-  writing-mode: vertical-rl;
-}
-
 .feature-cover {
   position: relative;
   z-index: 1;
@@ -535,7 +525,6 @@ button { color: inherit; }
   .feature-issue { flex: 0 0 28px; height: 28px; padding: 0 9px; font-size: 8.5px; }
   .feature-rail { width: 30px; }
   .feature-rail strong { top: 39px; left: 8px; font-size: 8px; }
-  .feature-rail em { bottom: 16px; left: 6px; font-size: 17px; }
   .feature-cover { flex: 0 0 151px; min-height: 0; padding: 14px 17px 12px; }
   .feature-place { font-size: 10px; }
   .feature-cover h1 { width: calc(100% - 58px); margin-top: 3px; font-size: 54px; }

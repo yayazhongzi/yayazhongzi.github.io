@@ -489,6 +489,10 @@ button { color: inherit; }
 
   .member-card {
     flex: 0 0 calc(100dvh - 184px);
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
+    align-self: stretch;
     min-height: 560px;
     margin-bottom: 14px;
     padding: 22px 21px 20px 29px;
@@ -512,6 +516,9 @@ button { color: inherit; }
 
   .feature-card {
     flex: 0 0 100%;
+    width: 100%;
+    max-width: 100%;
+    min-width: 0;
     height: 100%;
     min-height: 0;
     margin-bottom: 52px;
@@ -536,11 +543,22 @@ button { color: inherit; }
   .feature-seal { top: 42px; right: 13px; width: 52px; height: 52px; font-size: 16px; }
   .feature-label { gap: 6px; font-size: 11px; }
   .feature-label span { width: 20px; height: 20px; font-size: 8px; }
+  .feature-section p,
+  .feature-section li,
+  .feature-cover > p { overflow-wrap: anywhere; }
   .feature-section li { margin-bottom: 3px; padding-left: 10px; font-size: 11px; line-height: 1.38; }
   .feature-story { flex: 0 0 auto; min-height: 0; padding: 9px 13px 8px 15px; }
   .feature-story ul.feature-mobile { display: grid; grid-template-columns: 1fr 1fr; gap: 0 10px; margin-top: 5px; }
-  .feature-doing { flex: 0 0 auto; min-height: 0; padding: 9px 12px 9px 15px; }
-  .feature-doing::after { font-size: 13px; }
+  .feature-doing { flex: 0 0 auto; min-height: 76px; padding: 9px 12px 9px 15px; }
+  .feature-doing::after {
+    overflow: hidden;
+    padding: 5px 0;
+    font-size: 12px;
+    line-height: 1.15;
+    letter-spacing: .06em;
+    text-orientation: upright;
+    white-space: nowrap;
+  }
   .feature-doing > p { margin-top: 6px; font-size: 13.5px; line-height: 1.35; }
   .feature-offers { flex: 0 0 auto; min-height: 0; padding: 9px 13px 8px 15px; }
   .feature-offers ul { margin-top: 5px; column-gap: 10px; }
@@ -596,6 +614,8 @@ button { color: inherit; }
   .feature-cover > p { font-size: 11px; line-height: 1.3; }
   .feature-seal { top: 35px; width: 46px; height: 46px; }
   .feature-story, .feature-doing, .feature-offers, .feature-seeks { padding-top: 7px; padding-bottom: 7px; }
+  .feature-doing { min-height: 68px; }
+  .feature-doing::after { padding-block: 3px; font-size: 11px; letter-spacing: .04em; }
   .feature-story li:nth-child(n + 2), .feature-offers li:nth-child(n + 2) { display: none; }
   .feature-section li { font-size: 10px; line-height: 1.3; }
   .feature-doing > p, .feature-seeks > p { font-size: 11px; line-height: 1.28; }

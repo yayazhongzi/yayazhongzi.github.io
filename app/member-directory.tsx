@@ -57,7 +57,6 @@ function MemberCard({
 
       <aside className="feature-rail" aria-hidden="true">
         <strong>PERSON / {railLocation}</strong>
-        <em>一路在做</em>
       </aside>
 
       <header className="feature-cover">

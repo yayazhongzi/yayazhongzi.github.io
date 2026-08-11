@@ -461,6 +461,12 @@ button { color: inherit; }
   .filter-row::-webkit-scrollbar { display: none; }
   .filter-row button { flex: 0 0 auto; padding: 6px 10px; font-size: 10px; }
   .result-note { display: none; }
+  .result-note.is-filtering {
+    display: block;
+    margin: 6px 2px 0;
+    font-size: 10px;
+    line-height: 1.2;
+  }
 
   .card-deck {
     flex: 1;

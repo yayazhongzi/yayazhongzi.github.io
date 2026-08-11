@@ -1,12 +1,20 @@
 "use client";
 
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useMemo, useRef, useState } from "react";
 import { filterTags, members, type Member } from "./members";
 
 const currentCityCount = new Set(members.map((member) => member.cities[0]).filter(Boolean)).size;
 
+function normalizeSearchText(text: string) {
+  return text
+    .normalize("NFKC")
+    .toLocaleLowerCase("zh-CN")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
 function searchableText(member: Member) {
-  return [
+  return normalizeSearchText([
     member.name,
     ...member.cities,
     member.identity,
@@ -15,9 +23,7 @@ function searchableText(member: Member) {
     ...member.offers,
     ...member.seeks,
     ...member.tags,
-  ]
-    .join(" ")
-    .toLocaleLowerCase("zh-CN");
+  ].join(" "));
 }
 
 function shorten(text: string, limit: number) {
@@ -142,6 +148,7 @@ export function MemberDirectory() {
   const [query, setQuery] = useState("");
   const [activeTag, setActiveTag] = useState("全部");
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
+  const deckRef = useRef<HTMLElement>(null);
 
   useEffect(() => {
     if (!selectedMember) return;
@@ -152,8 +159,12 @@ export function MemberDirectory() {
     return () => document.removeEventListener("keydown", closeOnEscape);
   }, [selectedMember]);
 
+  useEffect(() => {
+    deckRef.current?.scrollTo({ top: 0, behavior: "auto" });
+  }, [activeTag, query]);
+
   const visibleMembers = useMemo(() => {
-    const keyword = query.trim().toLocaleLowerCase("zh-CN");
+    const keyword = normalizeSearchText(query);
     return members.filter((member) => {
       const matchesQuery = !keyword || searchableText(member).includes(keyword);
       const matchesTag =
@@ -167,6 +178,16 @@ export function MemberDirectory() {
   const reset = () => {
     setQuery("");
     setActiveTag("全部");
+  };
+
+  const updateQuery = (value: string) => {
+    setQuery(value);
+    if (value.trim()) setActiveTag("全部");
+  };
+
+  const chooseTag = (tag: string) => {
+    setActiveTag(tag);
+    setQuery("");
   };
 
   return (
@@ -194,11 +215,12 @@ export function MemberDirectory() {
           <input
             type="search"
             value={query}
-            onChange={(event) => setQuery(event.target.value)}
+            onChange={(event) => updateQuery(event.target.value)}
             placeholder="搜城市、经历、技能或正在做的事…"
             aria-label="搜索成员"
+            enterKeyHint="search"
           />
-          {query && <button type="button" onClick={() => setQuery("")} aria-label="清空搜索">×</button>}
+          {query && <button type="button" onClick={() => updateQuery("")} aria-label="清空搜索">×</button>}
         </label>
 
         <div className="filter-row" aria-label="按标签筛选">
@@ -207,7 +229,7 @@ export function MemberDirectory() {
               type="button"
               key={tag}
               className={activeTag === tag ? "active" : ""}
-              onClick={() => setActiveTag(tag)}
+              onClick={() => chooseTag(tag)}
               aria-pressed={activeTag === tag}
             >
               {tag}
@@ -215,13 +237,13 @@ export function MemberDirectory() {
           ))}
         </div>
 
-        <p className="result-note" aria-live="polite">
+        <p className={`result-note ${query || activeTag !== "全部" ? "is-filtering" : ""}`} aria-live="polite">
           {visibleMembers.length === members.length && !query ? "向上滑动，翻阅每一张名牌" : `找到 ${visibleMembers.length} 位可能聊得来的人`}
         </p>
       </section>
 
       {visibleMembers.length ? (
-        <section className="card-deck" aria-label="成员名牌列表">
+        <section ref={deckRef} className="card-deck" aria-label="成员名牌列表">
           {visibleMembers.map((member, index) => (
             <MemberCard key={member.id} member={member} index={index} total={visibleMembers.length} onOpen={setSelectedMember} />
           ))}
